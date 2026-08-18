@@ -136,6 +136,13 @@ injection:
     - knowledge
     - tdai-memory
 
+# 持久化 session binding / skill 抽取状态到 sqlite（挂载 tdai-proxy-data 卷）。
+# 没有它 bridge 的 L2 反查在 proxy 重启后只剩内存态，旧 session 身份全丢。
+storage:
+  enabled: true
+  backend: sqlite
+  ttlDays: 7
+
 redis:
   enabled: false
 YAML
@@ -147,6 +154,7 @@ $DOCKER run -d --name "$CONTAINER" \
   --add-host=host.docker.internal:host-gateway \
   -p "${PROXY_PORT}:8096" \
   -v "$CONFIG_FILE:/data/config.yaml:ro" \
+  -v "${PROXY_DATA_VOLUME:-tdai-proxy-data}:/data/tdai-memory-proxy" \
   "$PROXY_IMAGE" >/dev/null
 
 wait_healthy "$CONTAINER" 90
